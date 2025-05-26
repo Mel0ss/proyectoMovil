@@ -19,7 +19,7 @@ export default function Login({navigation}){
             if (response.ok){
                 await AsyncStorage.setItem('token', data.token)
                 await AsyncStorage.setItem('usuario', JSON.stringify(data.usuario))
-                navigation.navigate("Dashboard");
+                navigation.navigate('inicio');
             } else {
                 alert(data.message)
             }
