@@ -1,5 +1,6 @@
 import express from 'express'
 import router from './routes/routes.appfinanzas.js'
+import 'dotenv/config' 
 import cors from 'cors'
 
 //Se crea una instancia de express

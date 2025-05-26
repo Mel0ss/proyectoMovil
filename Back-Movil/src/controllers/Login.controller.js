@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 const SECRET_KEY = "claveMovil"
 
 export const login = async (req, res) => {
-  const { email, contraseña } = req.body
+  const { email, password } = req.body
 
   try {
     const connection = await getConnection()
@@ -15,7 +15,7 @@ export const login = async (req, res) => {
 
     const usuario = result[0]
 
-    if (contraseña === usuario.contraseña) {
+    if (password === usuario.password) {
       const user = { id: usuario.id_usuario, username: usuario.usuario }
       const token = jwt.sign(user, SECRET_KEY, { expiresIn: '1h' })
       console.log("Login válido. Bienvenido", usuario.usuario)
@@ -43,8 +43,6 @@ export const verifyToken = (req, res, next) => {
     })
 }
 
-
 export const metodoLogin = {
-  login
-  
+  login 
 }

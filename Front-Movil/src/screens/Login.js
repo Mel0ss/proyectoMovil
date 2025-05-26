@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextInput } from "react-native-gesture-handler";
 
 export default function Login({navigation}){
-    const [login, setLogin] = useState({ email: '', contraseña: ''})
+    const [login, setLogin] = useState({ email: '', password: ''})
 
     const handleSubmit = async () => {
         try {
@@ -19,7 +19,7 @@ export default function Login({navigation}){
             if (response.ok){
                 await AsyncStorage.setItem('token', data.token)
                 await AsyncStorage.setItem('usuario', JSON.stringify(data.usuario))
-                navigation.navigate('inicio');
+                navigation.navigate('Dashboard');
             } else {
                 alert(data.message)
             }
@@ -46,9 +46,9 @@ export default function Login({navigation}){
                     <TextInput 
                         style={styles.InputLogin} 
                         placeholder="Contraseña" 
-                        value={login.contraseña}
+                        value={login.password}
                         secureTextEntry 
-                        onChangeText={(text) => setLogin({...login, contraseña: text})}
+                        onChangeText={(text) => setLogin({...login, password: text})}
                     />
                 </View>
                 <Button title="Entrar" onPress={handleSubmit} color="#CCD5AE"/>

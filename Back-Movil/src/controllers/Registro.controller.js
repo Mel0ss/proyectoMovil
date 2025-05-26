@@ -2,7 +2,7 @@ import { getConnection } from "../database/database.js"
 
 export const registro = async (req, res) => {
     let connection
-    const {email, usuario, contraseña, saldo} = req.body
+    const {email, usuario, password, saldo} = req.body
 
     try {
         connection = await getConnection()
@@ -12,9 +12,10 @@ export const registro = async (req, res) => {
             return res.status(400).json({message: "El usuario ya existe"})
         }
         
-        await connection.execute('INSERT INTO Usuarios (email, usuario, contraseña, saldo) VALUES(?, ?, ?, ?)', [email, usuario, contraseña, saldo])
+        await connection.execute('INSERT INTO Usuarios (email, usuario, password, saldo) VALUES(?, ?, ?, ?)', [email, usuario, password, saldo])
         return res.status(201).json({message: "Usuario registrado exitosamente"})
     } catch (error) {
+        console.error("ERROR SQL:", error);
         return res.status(500).json({message: "Error en el servidor"})
     }
 }

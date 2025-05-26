@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Button, TextInput } from "react-native";
 import { useState } from "react"
 
 export default function Registro({navigation}){
-    const [form, setForm] = useState({email: '', usuario: '', contraseña: '', saldo: 0})
+    const [form, setForm] = useState({email: '', usuario: '', password: '', saldo: 0})
 
     const handleChange = (name, value) => {
         setForm({ ...form, [name]: value})
@@ -11,7 +11,7 @@ export default function Registro({navigation}){
 
     const handleSubmit = async() => {
         try {
-            const response = await fetch("http://localhost:3000/api/registro", {
+            const response = await fetch("http://localhost:3000/api/Registro", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(form)
@@ -56,8 +56,8 @@ export default function Registro({navigation}){
                     style={styles.InputRegistro} 
                     placeholder="Contraseña"
                     secureTextEntry
-                    value={form.contraseña}
-                    onChangeText={(text) => handleChange("contraseña", text)}
+                    value={form.password}
+                    onChangeText={(text) => handleChange("password", text)}
                     />
                 </View>
                 <Button title="Entrar" onPress={handleSubmit} color="#CCD5AE"/>
