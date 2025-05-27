@@ -15,6 +15,6 @@ router.get('/categorias/:id_usuario', listarCategorias)
 router.delete('/categorias/:id', eliminarCategoria)
 router.post('/registrar_movimiento', registrar_movimiento)
 router.post('/listar_movimientos', listar)
-router.post('/analisis', analizar)
+router.get('/analisis/:id_usuario', analizar)
 
 export default router

@@ -1,59 +1,83 @@
-import React from "react";
+import React , {useEffect, useState} from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { BarChart } from 'react-native-gifted-charts';
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 export default function AnalisisFinanciero() {
+    const [datos, setDatos] = useState(null)
+
+    const obtenerAnalisis = async () => {
+      const usuario = await AsyncStorage.getItem('usuario')
+      const id_usuario = JSON.parse(usuario).id_usuario
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/analisis/${id_usuario}`)
+        const data = await res.json()
+        setDatos(data)
+      } catch (error) {
+        console.error("Error al obtener el análisis: ", error)
+      }
+    }
+
+    useEffect(() => {
+      obtenerAnalisis()
+    }, [])
+
+    if (!datos) {
+      return <Text style={{textAlign: 'center', marginTop: 50}}>Cargando...</Text>
+    }
+
     const barData = [
-        { value: 10000, label: 'Ingresos', frontColor: '#ccd5ae' },
-        { value: 5000, label: 'Gastos', frontColor: '#6b705c' },
-      ]
+      {value: datos.promedioIngresos, label: 'Ingresos', frontColor: '#ccd5ae'},
+      {value: datos.promedioGastos, label: 'Gastos', frontColor: '#6b705c'}
+    ]
 
-  return (
-    <ScrollView style={styles.ContainerAnalisis} contentContainerStyle={{ paddingBottom: 60 }}>
-      <Text style={styles.Titulo}>Análisis de Ingresos y Gastos</Text>
+    return (
+      <ScrollView style={styles.ContainerAnalisis} contentContainerStyle={{ paddingBottom: 60 }}>
+        <Text style={styles.Titulo}>Análisis de Ingresos y Gastos</Text>
 
-      <View style={styles.Card}>
-        <Text style={styles.Subtitulo}>Promedio Mensual</Text>
-        <Text style={styles.info}>Ingresos: $1,200</Text>
-        <Text style={styles.info}>Gastos: $950</Text>
-      </View>
+        <View style={styles.Card}>
+          <Text style={styles.Subtitulo}>Promedio Mensual</Text>
+          <Text style={styles.info}>Ingresos: ${datos.promedioIngresos}</Text>
+          <Text style={styles.info}>Gastos: ${datos.promedioGastos}</Text>
+        </View>
 
-      <View style={styles.Card}>
-        <Text style={styles.Subtitulo}>Porcentaje de Ahorro</Text>
-        <Text style={styles.valor}>20.8%</Text>
-      </View>
+        <View style={styles.Card}>
+          <Text style={styles.Subtitulo}>Porcentaje de Ahorro</Text>
+          <Text style={styles.valor}>{datos.porcentajeAhorro}%</Text>
+        </View>
 
-      <View style={styles.Card}>
-        <Text style={styles.Subtitulo}>Gasto por Categoría</Text>
-        <Text style={styles.info}>Alimentos: $300</Text>
-        <Text style={styles.info}>Transporte: $150</Text>
-        <Text style={styles.info}>Educación: $200</Text>
-        <Text style={styles.info}>Ocio: $100</Text>
-      </View>
+        <View style={styles.Card}>
+          <Text style={styles.Subtitulo}>Gasto por Categoría</Text>
+          {datos.gastosPorCategoria.map((cat, i) => (
+            <Text key={i} style={styles.info}>{cat.categoria}: ${cat.total}</Text>
+          ))}
+        </View>
 
-      <View style={styles.Card}>
-        <Text style={styles.Subtitulo}>Relación Ingresos-Gastos</Text>
-        <Text style={styles.valor}>Positivo (+$250)</Text>
-      </View>
+        <View style={styles.Card}>
+          <Text style={styles.Subtitulo}>Relación Ingresos-Gastos</Text>
+          <Text style={styles.valor}>
+            {datos.relacion === 'positivo' ? 'Positivo' : 'Negativo'} ({datos.relacion === 'positivo' ? '+' : '-'}${datos.diferencia})
+          </Text>
+        </View>
 
-      <View style={styles.Card}>
-        <Text style={styles.Subtitulo}>Relación Ingresos-Gastos</Text>
-        <BarChart 
-            data={barData}
-            barWidth={40}
-            stepValue={2000}
-            maxValue={10000}
-            frontColor="lightblue"
-            yAxisLabelPrefix="$"
-            yAxisTextStyle={{ color: 'gray' }}
-            xAxisLabelTextStyle={{ color: 'gray' }}
-            yAxisLabelWidth={50}
-            isAnimated
-        />
-      </View>
-      <Text style={styles.MarcaAgua} >Acciones & Gestión S.A.S</Text>
-    </ScrollView>
-  );
+        <View style={styles.Card}>
+          <Text style={styles.Subtitulo}>Gráfico Ingresos vs Gastos</Text>
+          <BarChart 
+              data={barData}
+              barWidth={40}
+              maxValue={Math.max(datos.promedioIngresos, datos.promedioGastos) + 500}
+              yAxisLabelPrefix="$"
+              yAxisTextStyle={{ color: 'gray' }}
+              xAxisLabelTextStyle={{ color: 'gray' }}
+              yAxisLabelWidth={50}
+              isAnimated
+          />
+        </View>
+        
+        <Text style={styles.MarcaAgua} >Acciones & Gestión S.A.S</Text>
+      </ScrollView>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -104,4 +128,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
   }
-});
+})

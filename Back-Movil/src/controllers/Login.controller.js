@@ -41,6 +41,7 @@ export const verifyToken = (req, res, next) => {
 
     next()
     })
+    console.log(token)
 }
 
 export const metodoLogin = {

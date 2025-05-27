@@ -1,160 +1,152 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from "@react-native-picker/picker";
 
-export default function List_Gts_Ing({navigation}){
+export default function List_Gts_Ing() {
+  const [data, setData] = useState([]);
+  const [tipo, setTipo] = useState("Seleccionar");
+  const [idUsuario, setIdUsuario] = useState(null);
 
-    const [tipo, setTipo] = useState("");
-    const [data, setData] = useState([]);
+  useEffect(() => {
+    const obtenerUsuario = async () => {
+      const usuarioGuardado = await AsyncStorage.getItem("usuario");
+      if (usuarioGuardado) {
+        const usuario = JSON.parse(usuarioGuardado);
+        setIdUsuario(usuario.id_usuario);
+      }
+    };
+    obtenerUsuario();
+  }, []);
 
-    const Api_ingresos = [
-        {
-            id: '1',
-            tipo: 'Ingreso',
-            descripcion: 'Salario de abril',
-            cantidad: 2500000,
-            categoria: 'Nómina',
-            fecha: '01/05/2025',
-          },
-          {
-            id: '2',
-            tipo: 'Ingreso',
-            descripcion: 'Emprendimiento pulseras',
-            cantidad: 120000,
-            categoria: 'Trabajo Extra',
-            fecha: '02/05/2025',
-          },
-          {
-            id: '3',
-            tipo: 'Ingreso',
-            descripcion: 'Freelance diseño',
-            cantidad: 800000,
-            categoria: 'Trabajo Extra',
-            fecha: '04/05/2025',
-          },
-      ];
+  const ValidacionTipo = async (itemValue) => {
+    setTipo(itemValue);
+    setData([]);
 
-      const Api_gastos = [
-        {
-            id: '1',
-            tipo: 'Gasto',
-            descripcion: 'Arenero inteligente',
-            cantidad: 500000,
-            categoria: 'Mascota',
-            fecha: '01/05/2025',
-          },
-          {
-            id: '2',
-            tipo: 'Gasto',
-            descripcion: 'Supermercado',
-            cantidad: 350000,
-            categoria: 'Alimentos',
-            fecha: '02/05/2025',
-          },
-          {
-            id: '3',
-            tipo: 'Gasto',
-            descripcion: 'Recarga de civica',
-            cantidad: 70000,
-            categoria: 'Transporte',
-            fecha: '04/05/2025',
-          },
-      ];
+    let tipoFormatoBD = "";
+    if (itemValue === "Ingresos") tipoFormatoBD = "Ingreso";
+    else if (itemValue === "Gastos") tipoFormatoBD = "Gasto";
+    else return;
 
-      const ValidacionTipo = (itemValue) => {
-        setTipo(itemValue);
-        if (itemValue === "Ingresos") {
-          setData(Api_ingresos);
-        } else if (itemValue === "Gastos") {
-          setData(Api_gastos);
-        } else {
-          setData([]);
-        }
-      };
+    if (!idUsuario) {
+      Alert.alert("Error", "Usuario no identificado.");
+      return;
+    }
 
-    return(
-        <View style={styles.ContainerLista}>
-            <Text style={styles.TituloLista}>Lista de Gastos e Ingresos</Text>
-            <Picker
-                selectedValue={tipo}
-                onValueChange={ValidacionTipo}
-                style={styles.picker}
-                itemStyle={styles.TextoLista}
-            >
-                <Picker.Item label="         --" value="" />
-                <Picker.Item label="Ingresos" value="Ingresos" />
-                <Picker.Item label="Gastos" value="Gastos" />
-            </Picker>
-            <FlatList
-                data={data}
-                keyExtractor={(item)=> item.id}
-                contentContainerStyle={{ paddingBottom: 50 }}
-                renderItem={({item}) => (
-                <View style={styles.ficha}>
-                  <Text style={styles.TituloLista2}>{item.tipo}</Text>
-                  <Text style={styles.TextoLista}>Cantidad: {item.cantidad}</Text>
-                  <Text style={styles.TextoLista}>Descripción: {item.descripcion}</Text>
-                  <Text style={styles.TextoLista}>Categoria: {item.categoria}</Text>
-                  <Text style={styles.TextoLista}>Fecha: {item.fecha}</Text>
-                  </View>
-                )}
-            />
-            <Text style={styles.MarcaAgua} >Acciones & Gestión S.A.S</Text>
-        </View>
-    )
+    try {
+      const response = await fetch("http://localhost:3000/api/listar_movimientos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tipo: tipoFormatoBD, id_usuario: idUsuario }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error("Error del servidor");
+      setData(result);
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "No se pudieron obtener los datos");
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.item}>
+      <Text style={styles.textoCategoria}>{item.categoria}</Text>
+      <Text style={styles.textoDescripcion}>{item.descripcion}</Text>
+      <Text style={styles.textoCantidad}>${item.cantidad}</Text>
+      <Text style={styles.textoFecha}>{item.fecha}</Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Movimientos</Text>
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={tipo}
+          onValueChange={ValidacionTipo}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccionar" value="Seleccionar" />
+          <Picker.Item label="Ingresos" value="Ingresos" />
+          <Picker.Item label="Gastos" value="Gastos" />
+        </Picker>
+      </View>
+
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        ListEmptyComponent={<Text style={styles.textoVacio}>No hay movimientos aún.</Text>}
+      />
+
+      <Text style={styles.marcaAgua}>Acciones & Gestión S.A.S</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    ContainerLista: {
-        flex: 1,
-        display: 'flex',
-        backgroundColor: '#FEFAE0',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-      },
-    TituloLista:{
-        fontSize: 42,
-        fontFamily: 'Pacifico',
-        color: '#463f3a',
-        paddingHorizontal: 10,
-        borderRadius: 5,
-    },
-    picker: {
-        width: 250,
-        marginVertical: 10,
-        backgroundColor: '#DDE5B6',
-        borderRadius: 8,
-        fontSize: 20,
-        fontFamily: 'Pacifico',
-      },
-    TituloLista2:{
-        fontSize: 25,
-        fontFamily: 'Pacifico',
-        color: '#463f3a',
-        fontWeight: 'bold'
-    },
-    TextoLista:{
-        fontSize: 18,
-        fontFamily: 'Pacifico',
-        marginTop: 5,
-        color: '#463f3a',
-        textAlign: 'center'
-    },
-    ficha: {
-        width: 250, 
-        backgroundColor: '#E9EDC9',
-        alignItems: 'center',  
-        borderRadius: 15,
-        margin: 15,
-    },
-    MarcaAgua:{
-        color: '#CAC080',
-        fontSize: 10,
-        fontFamily: 'Pacifico',
-        position: 'absolute',
-        bottom: 10,
-    },
-    CajitaLista: {
-      flex: 1
-    }
+  container: {
+    flex: 1,
+    backgroundColor: '#FEFAE0',
+    padding: 20,
+  },
+  titulo: {
+    fontSize: 28,
+    fontFamily: 'Pacifico',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#463f3a',
+  },
+  pickerContainer: {
+    backgroundColor: '#E9EDC9',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  picker: {
+    height: 50,
+    fontFamily: 'Pacifico',
+  },
+  item: {
+    backgroundColor: '#E9EDC9',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  textoCategoria: {
+    fontSize: 18,
+    fontFamily: 'Pacifico',
+    color: '#6b705c',
+  },
+  textoDescripcion: {
+    fontSize: 16,
+    color: '#463f3a',
+  },
+  textoCantidad: {
+    fontSize: 16,
+    color: '#588157',
+  },
+  textoFecha: {
+    fontSize: 14,
+    color: '#999',
+  },
+  textoVacio: {
+    fontFamily: 'Pacifico',
+    textAlign: 'center',
+    marginTop: 40,
+    color: '#aaa',
+  },
+  marcaAgua: {
+    fontSize: 10,
+    fontFamily: 'Pacifico',
+    textAlign: 'center',
+    position: 'absolute',
+    bottom: 10,
+    width: '100%',
+    color: '#CAC080',
+  },
 });
