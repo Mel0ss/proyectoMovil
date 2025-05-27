@@ -1,27 +1,18 @@
 import { getConnection } from "../database/database.js";
 
 export const listar = async (req, res) => {
-  let connection;
   try {
     const { tipo, id_usuario } = req.body;
+    console.log("Recibido en backend:", tipo, id_usuario);
 
-    connection = await getConnection();
+    const connection = await getConnection()
 
-    const query = `
-      SELECT m.id, m.tipo, m.descripcion, m.cantidad,
-             DATE_FORMAT(m.fecha, '%d/%m/%Y') AS fecha,
-             c.nombre AS categoria
-      FROM Movimientos m
-      INNER JOIN Categorias c ON m.id_categoria2 = c.id_categoria
-      WHERE m.tipo = ? AND m.id_usuario2 = ?
-    `;
-    const [rows] = await connection.execute(query, [tipo, id_usuario]);
+    const [resultado] = await connection.query(`SELECT m.*, c.nombre AS nombre_categoria FROM Movimientos m JOIN Categorias c ON m.id_categoria2 = c.id_categoria WHERE m.tipo = ? AND m.id_usuario2 = ?`,[tipo, id_usuario])
+    console.log("Movimientos encontrados:", resultado);
 
-    res.json(rows);
+    res.json(resultado);
   } catch (error) {
     console.error("Error al listar movimientos:", error);
     res.status(500).json({ message: "Error al obtener movimientos" });
-  } finally {
-    if (connection) connection.release();
   }
 };
