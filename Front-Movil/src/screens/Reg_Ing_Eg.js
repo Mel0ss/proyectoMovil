@@ -3,48 +3,51 @@ import { View, Text, StyleSheet, Button, TextInput, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from '@react-navigation/native'
 
 function IngresosScreen({navigation}) {
-    const [descripcion, setDescripcion] = useState("");
-    const [cantidad, setCantidad] = useState("");
-    const [categoria, setCategoria] = useState("");
-    const [fecha, setFecha] = useState("");
-    const [categorias, setCategorias] = useState([]);
-    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+    const [descripcion, setDescripcion] = useState("")
+    const [cantidad, setCantidad] = useState("")
+    const [fecha, setFecha] = useState("")
+    const [categorias, setCategorias] = useState([])
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null)
+
+    useFocusEffect(useCallback(() => {obtenerCategorias()}, []))
 
     useEffect(() => {
   const obtenerCategorias = async () => {
     try {
-      const usuario = await AsyncStorage.getItem("usuario");
-      const usuarioParseado = JSON.parse(usuario);
-      const id_usuario = usuarioParseado.id_usuario;
+      const usuario = await AsyncStorage.getItem("usuario")
+      const usuarioParseado = JSON.parse(usuario)
+      const id_usuario = usuarioParseado.id_usuario
 
-      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}`);
-      const data = await response.json();
+      const tipo = "Ingreso"
+      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
+      const data = await response.json()
 
       if (response.ok) {
-        setCategorias(data);
+        setCategorias(data)
       } else {
-        console.error("Error al obtener categorías");
+        console.error("Error al obtener categorías")
       }
     } catch (error) {
-      console.error("Error cargando categorías:", error);
+      console.error("Error cargando categorías:", error)
     }
   };
 
-    obtenerCategorias();
+    obtenerCategorias()
     }, []);
 
     const registrarIngreso = async () => {
     if (!descripcion || !cantidad || !categoriaSeleccionada || !fecha) {
-      Alert.alert("Error", "Por favor completa todos los campos.");
-      return;
+      Alert.alert("Error", "Por favor completa todos los campos.")
+      return
     }
 
     try {
-      const usuario = await AsyncStorage.getItem("usuario");
-      const usuarioParseado = JSON.parse(usuario);
-      const id_usuario2 = usuarioParseado.id_usuario;
+      const usuario = await AsyncStorage.getItem("usuario")
+      const usuarioParseado = JSON.parse(usuario)
+      const id_usuario2 = usuarioParseado.id_usuario
 
       const response = await fetch("http://localhost:3000/api/registrar_movimiento", {
         method: "POST",
@@ -59,19 +62,19 @@ function IngresosScreen({navigation}) {
           id_categoria2: categoriaSeleccionada,
           id_usuario2,
         }),
-      });
+      })
 
       if (response.ok) {
-        Alert.alert("Éxito", "Ingreso registrado correctamente.");
-        navigation.navigate("Dashboard");
+        Alert.alert("Éxito", "Ingreso registrado correctamente.")
+        navigation.navigate("Dashboard")
       } else {
-        Alert.alert("Error", "No se pudo registrar el ingreso.");
+        Alert.alert("Error", "No se pudo registrar el ingreso.")
       }
     } catch (error) {
-      console.error("Error al registrar ingreso:", error);
-      Alert.alert("Error", "Error al registrar ingreso.");
+      console.error("Error al registrar ingreso:", error)
+      Alert.alert("Error", "Error al registrar ingreso.")
     }
-    };
+    }
 
     return (
         <View style={styles.ContainerRegistro}>
@@ -98,18 +101,16 @@ function IngresosScreen({navigation}) {
             </View>
             <View style={styles.ContainerRegistro2}>
                 <Text style={styles.TextoRegistro2}>Categoría: </Text>
-                <View style={{ borderWidth: 1, borderColor: "#6b705c", borderRadius: 5, marginBottom: 16 }}>
                     <Picker
                     selectedValue={categoriaSeleccionada}
                     onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
-                    style={styles.picker}
+                    style={styles.pickerCat}
                     >
                     <Picker.Item label="--" value={null} />
                     {categorias.map((cat) => (
-                        <Picker.Item key={cat.id_categoria} label={cat.nombre} value={cat.id_categoria} />
+                        <Picker.Item key={cat.id_categoria.toString()} label={cat.nombre} value={cat.id_categoria} />
                     ))}
                     </Picker>
-                </View>
             </View>
             <View style={styles.ContainerRegistro2}>
                 <Text style={styles.TextoRegistro2}>Fecha: </Text>
@@ -127,49 +128,51 @@ function IngresosScreen({navigation}) {
     );
   }
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator()
 
 function EgresosScreen({navigation}) {
-    const [descripcion, setDescripcion] = useState("");
-    const [cantidad, setCantidad] = useState("");
-    const [categoria, setCategoria] = useState("");
-    const [fecha, setFecha] = useState("");
-    const [categorias, setCategorias] = useState([]);
-    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+    const [descripcion, setDescripcion] = useState("")
+    const [cantidad, setCantidad] = useState("")
+    const [fecha, setFecha] = useState("")
+    const [categorias, setCategorias] = useState([])
+    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null)
+
+    useFocusEffect(useCallback(() => {obtenerCategorias()}, []))
 
     useEffect(() => {
   const obtenerCategorias = async () => {
     try {
-      const usuario = await AsyncStorage.getItem("usuario");
-      const usuarioParseado = JSON.parse(usuario);
-      const id_usuario = usuarioParseado.id_usuario;
+      const usuario = await AsyncStorage.getItem("usuario")
+      const usuarioParseado = JSON.parse(usuario)
+      const id_usuario = usuarioParseado.id_usuario
 
-      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}`);
-      const data = await response.json();
+      const tipo = "Gasto"
+      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
+      const data = await response.json()
 
       if (response.ok) {
-        setCategorias(data);
+        setCategorias(data)
       } else {
-        console.error("Error al obtener categorías");
+        console.error("Error al obtener categorías")
       }
     } catch (error) {
-      console.error("Error cargando categorías:", error);
+      console.error("Error cargando categorías:", error)
     }
-  };
+  }
 
     obtenerCategorias();
     }, []);
 
     const registrarEgreso = async () => {
     if (!descripcion || !cantidad || !categoriaSeleccionada || !fecha) {
-      Alert.alert("Error", "Por favor completa todos los campos.");
-      return;
+      Alert.alert("Error", "Por favor completa todos los campos.")
+      return
     }
 
     try {
-      const usuario = await AsyncStorage.getItem("usuario");
-      const usuarioParseado = JSON.parse(usuario);
-      const id_usuario2 = usuarioParseado.id_usuario;
+      const usuario = await AsyncStorage.getItem("usuario")
+      const usuarioParseado = JSON.parse(usuario)
+      const id_usuario2 = usuarioParseado.id_usuario
 
       const response = await fetch("http://localhost:3000/api/registrar_movimiento", {
         method: "POST",
@@ -181,25 +184,25 @@ function EgresosScreen({navigation}) {
           descripcion,
           cantidad: parseFloat(cantidad),
           fecha,
-          id_categoria2: parseInt(categoria), // Debe ser el ID de la categoría
+          id_categoria2: categoriaSeleccionada,
           id_usuario2,
         }),
-      });
+      })
 
       if (response.ok) {
-        Alert.alert("Éxito", "Gasto registrado correctamente.");
-        navigation.navigate("Dashboard");
+        Alert.alert("Éxito", "Gasto registrado correctamente.")
+        navigation.navigate("Dashboard")
       } else {
-        Alert.alert("Error", "No se pudo registrar el gasto.");
+        Alert.alert("Error", "No se pudo registrar el gasto.")
       }
     } catch (error) {
-      console.error("Error al registrar gasto:", error);
+      console.error("Error al registrar gasto:", error)
       Alert.alert("Error", "Error al registrar gasto.");
     }
     };
     return (
      <View style={styles.ContainerRegistro}>
-        <Text style={styles.TitulosRegistro}>Registros de Ingresos</Text>
+        <Text style={styles.TitulosRegistro}>Registros de Gastos</Text>
         <View style={styles.CuadritoRegistro}>
             <View style={styles.ContainerRegistro2}>
                 <Text style={styles.TextoRegistro2}>Descripción: </Text>
@@ -222,18 +225,16 @@ function EgresosScreen({navigation}) {
             </View>
             <View style={styles.ContainerRegistro2}>
                 <Text style={styles.TextoRegistro2}>Categoría: </Text>
-                <View style={{ borderWidth: 1, borderColor: "#6b705c", borderRadius: 5, marginBottom: 16 }}>
                     <Picker
                         selectedValue={categoriaSeleccionada}
                         onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
-                        style={{ height: 40, color: "#463f3a" }}
+                        style={styles.pickerCat}
                         >
-                        <Picker.Item label="Seleccione una categoría" value={null} />
+                        <Picker.Item label="--" value={null} />
                         {categorias.map((cat) => (
                             <Picker.Item key={cat.id_categoria} label={cat.nombre} value={cat.id_categoria} />
                         ))}
                     </Picker>
-                </View>
             </View>
             <View style={styles.ContainerRegistro2}>
                 <Text style={styles.TextoRegistro2}>Fecha: </Text>
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 16,
     },
-    picker: {
+    pickerCat: {
         width: 250,
         marginVertical: 10,
         backgroundColor: '#DDE5B6',

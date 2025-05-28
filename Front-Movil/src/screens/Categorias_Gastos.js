@@ -15,7 +15,7 @@ function CategoriaScreen({ tipo }) {
     const id_usuario = JSON.parse(usuario).id_usuario;
 
     try {
-      const res = await fetch('http://localhost:3000/api/categorias/${id_usuario}');
+      const res = await fetch(`http://localhost:3000/api/categorias/${id_usuario}`);
       const data = await res.json();
       const filtradas = data.filter(cat => cat.tipo.toLowerCase() === tipo.toLowerCase())
       setCategorias(filtradas);
@@ -56,7 +56,7 @@ function CategoriaScreen({ tipo }) {
 
   const eliminarCategoria = async (id) => {
     try {
-      const res = await fetch('http://localhost:3000/api/categorias/${id}', {
+      const res = await fetch(`http://localhost:3000/api/categorias/${id}`, {
         method: "DELETE"
       });
       const data = await res.json();

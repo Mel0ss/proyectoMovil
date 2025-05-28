@@ -18,3 +18,18 @@ try {
     res.status(500).json({ message: "Error al registrar movimiento" });
   }
 } 
+
+export const getCategorias = async (req, res) => {
+  const { id_usuario, tipo } = req.params;
+  try {
+    const connection = await getConnection();
+    const [categorias] = await connection.query(
+      'SELECT * FROM Categorias WHERE id_usuario2 = ? AND tipo = ?',
+      [id_usuario, tipo]
+    );
+    res.json(categorias);
+  } catch (err) {
+    console.error("Error al obtener categorías:", err);
+    res.status(500).json({ error: "Error al obtener categorías" });
+  }
+};
