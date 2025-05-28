@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react";
+import React, {  useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Button, TextInput, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -12,31 +12,31 @@ function IngresosScreen({navigation}) {
     const [categorias, setCategorias] = useState([])
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null)
 
-    useFocusEffect(useCallback(() => {obtenerCategorias()}, []))
-
-    useEffect(() => {
   const obtenerCategorias = async () => {
-    try {
-      const usuario = await AsyncStorage.getItem("usuario")
-      const usuarioParseado = JSON.parse(usuario)
-      const id_usuario = usuarioParseado.id_usuario
+      try {
+        const usuario = await AsyncStorage.getItem("usuario")
+        const usuarioParseado = JSON.parse(usuario)
+        const id_usuario = usuarioParseado.id_usuario
 
-      const tipo = "Ingreso"
-      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
-      const data = await response.json()
+        const tipo = "Ingreso"
+        const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
+        const data = await response.json()
 
-      if (response.ok) {
-        setCategorias(data)
-      } else {
-        console.error("Error al obtener categorías")
+        if (response.ok) {
+          setCategorias(data)
+        } else {
+          console.error("Error al obtener categorías")
+        }
+      } catch (error) {
+        console.error("Error cargando categorías:", error)
       }
-    } catch (error) {
-      console.error("Error cargando categorías:", error)
-    }
-  };
+    } 
 
-    obtenerCategorias()
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            obtenerCategorias()
+        }, [])
+      )
 
     const registrarIngreso = async () => {
     if (!descripcion || !cantidad || !categoriaSeleccionada || !fecha) {
@@ -137,31 +137,27 @@ function EgresosScreen({navigation}) {
     const [categorias, setCategorias] = useState([])
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null)
 
-    useFocusEffect(useCallback(() => {obtenerCategorias()}, []))
+    const obtenerCategorias = async () => {
+      try {
+        const usuario = await AsyncStorage.getItem("usuario")
+        const usuarioParseado = JSON.parse(usuario)
+        const id_usuario = usuarioParseado.id_usuario
 
-    useEffect(() => {
-  const obtenerCategorias = async () => {
-    try {
-      const usuario = await AsyncStorage.getItem("usuario")
-      const usuarioParseado = JSON.parse(usuario)
-      const id_usuario = usuarioParseado.id_usuario
+        const tipo = "Gasto"
+        const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
+        const data = await response.json()
 
-      const tipo = "Gasto"
-      const response = await fetch(`http://localhost:3000/api/categorias/${id_usuario}/${tipo}`)
-      const data = await response.json()
-
-      if (response.ok) {
-        setCategorias(data)
-      } else {
-        console.error("Error al obtener categorías")
+        if (response.ok) {
+          setCategorias(data)
+        } else {
+          console.error("Error al obtener categorías")
+        }
+      } catch (error) {
+        console.error("Error cargando categorías:", error)
       }
-    } catch (error) {
-      console.error("Error cargando categorías:", error)
     }
-  }
 
-    obtenerCategorias();
-    }, []);
+    useFocusEffect(useCallback(() => {obtenerCategorias()}, []))
 
     const registrarEgreso = async () => {
     if (!descripcion || !cantidad || !categoriaSeleccionada || !fecha) {
